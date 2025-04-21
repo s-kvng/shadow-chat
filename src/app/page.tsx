@@ -1,102 +1,126 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import Markdown from "react-markdown";
+
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
 
 export default function Home() {
+  const [prompt, setPrompt] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    // TODO: handle submit
+    e.preventDefault();
+
+    setLoading(true);
+    setPrompt("");
+
+    // update messages history with the user message
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { role: "user", content: prompt },
+    ]);
+
+    // fetch the response from the server
+    try {
+      const response = await fetch("/api/v1/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      const result = await response.json();
+
+      const { thinking, response: finalResponse } = result;
+
+      // Add assistant's thinking and final response as separate messages
+      if (thinking) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { role: "assistant", content: `🤔 Thinking: ${thinking}` },
+        ]);
+      }
+
+      if (finalResponse) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { role: "assistant", content: `🗣️ ${finalResponse}` },
+        ]);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          role: "assistant",
+          content: "⚠️ Error occurred while fetching response.",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        <div className=" bg-gray-400 rounded-xl h-[400px] max-h-[400px] w-[650px] max-w-[650px] p-5 text-black text-lg overflow-auto">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`flex gap-2 mb-2 ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`rounded-lg p-2 max-w-[90%] break-words ${
+                  message.role === "user"
+                    ? "bg-blue-500 text-white"
+                    : message.content.includes("🤔")  // crude check for thinking
+      ? "bg-yellow-100 text-gray-700 italic text-sm"
+      : "bg-gray-300 text-black"
+                }`}
+              >
+                {message.role === "assistant" ? 
+                  <Markdown>{message.content}</Markdown> : (
+                  <span>{message.content}</span>) }
+              </div>
+            </div>
+          ))}
         </div>
+        {loading && (
+          <div className="flex gap-2 justify-start">
+            <div className="rounded-lg p-2 bg-gray-300 text-black">
+              Loading...
+            </div>
+          </div>
+        )}
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Chat with Shadow"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="bg-gray-600 rounded-lg p-2 w-[400px] max-w-[400px] text-white text-lg"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+          <button
+            type="submit"
+            className="bg-blue-600 text-white rounded-lg px-4 py-2 text-lg"
+            disabled={loading}
+          >
+            Send
+          </button>
+        </form>
       </footer>
     </div>
   );
