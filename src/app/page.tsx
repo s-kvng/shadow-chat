@@ -92,7 +92,6 @@ export default function Home() {
       //     { role: "assistant", content: `🗣️ ${finalResponse}` },
       //   ]);
       // }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setMessages((prevMessages) => [
         ...prevMessages,
@@ -133,7 +132,7 @@ export default function Home() {
               </div>
               <h2 className="text-2xl font-bold text-gray-200">Welcome to Shadow Chat</h2>
               <p className="text-gray-400 max-w-md mx-auto">
-                Ask me anything! I'm here to help with coding, problem-solving, and more.
+                Ask me anything! I&apos;m here to help with coding, problem-solving, and more.
               </p>
             </div>
           )}
