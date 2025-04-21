@@ -2,45 +2,41 @@ import OpenAI from "openai";
 
 const client = new OpenAI({
     apiKey: process.env.GROQ_API_KEY,
-  baseURL: "https://api.groq.com/openai/v1"
+    baseURL: "https://api.groq.com/openai/v1"
 });
 
 /**
  * @param {Request} req
  * @returns {Promise<Response>}
  * @description This function handles the POST request to the /api/v1/chat endpoint.
- * It takes a JSON object with a prompt, sends it to the OpenAI API, and returns the response.
+ * It takes a JSON object with a prompt, sends it to the OpenAI API, and returns the response as a stream.
  */
-export async function POST(req: Request){
-    const { prompt: input } = await req.json()
+export async function POST(req: Request) {
+    const { prompt: input } = await req.json();
 
     const result = await client.chat.completions.create({
-        model: "deepseek-r1-distill-llama-70b",
+        model: "llama3-8b-8192",
         messages: [
             { role: "user", content: input }
-          ],
-    })
-// console.log("result -> ",result)
-// console.log("result.output_text -> ",result.choices[0].message)
-const rawResponse=result.choices[0].message.content
- // Clean each line of the raw response
- const formatted = rawResponse
- .split('\n')
- .map(line =>
-   line
-     .replace(/^['"`]\s*\+?\s*/, '')  // Remove leading quote and optional `+`
-     .replace(/['"`]\s*$/, '')       // Remove trailing quote
- )
- .join('\n');
+        ],
+        stream: true
+    });
 
- console.log("formatted -> ",formatted)
+    const stream = new ReadableStream({
+        async start(controller) {
+            for await (const chunk of result) {
+                const content = chunk.choices[0]?.delta?.content || "";
+                controller.enqueue(new TextEncoder().encode(content));
+            }
+            controller.close();
+        }
+    });
 
-// Split the cleaned response into thinking and final answer
-const [thinking, finalResponse] = formatted.split('</think>\n');
-
-// Return both parts in a structured format
-return Response.json({
- thinking: thinking?.trim(),
- response: finalResponse?.trim(),
-});
+    return new Response(stream, {
+        headers: {
+            "Content-Type": "text/event-stream; charset=utf-8",
+            "Cache-Control": "no-cache, no-transform",
+            "Connection": "keep-alive",
+        },
+    });
 }
