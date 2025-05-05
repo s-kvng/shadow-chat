@@ -1,8 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Shadow Chat
+
+Shadow Chat is a simple web-based chat application built with Next.js that interacts with an AI model via the Groq API. It features a clean interface for sending prompts and displaying responses, including intermediate "thinking" steps from the AI.
+
+## Features
+
+*   Simple, responsive chat interface built with React and Tailwind CSS.
+*   Sends user prompts to a backend API endpoint.
+*   Connects to the Groq API for fast AI responses.
+*   Displays both the AI's thinking process (if provided) and the final response.
+*   Uses Markdown rendering for formatted AI responses.
+*   Utilizes the Geist font for typography.
+
+## Streaming Version
+
+A version of this application implementing streaming responses is available on the streaming branch.
+
+## Tech Stack
+
+*   **Framework:** [Next.js](https://nextjs.org/) 15+ (with App Router & Turbopack)
+*   **Language:** [TypeScript](https://www.typescriptlang.org/)
+*   **UI:** [React](https://react.dev/) 19
+*   **Styling:** [Tailwind CSS](https://tailwindcss.com/) 4
+*   **AI Integration:** [Groq API](https://groq.com/) via `openai` SDK
+*   **Markdown Rendering:** `react-markdown`
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+*   Node.js (Version recommended by Next.js 15+)
+*   npm, yarn, pnpm, or bun
+*   A Groq API Key
+
+### Setup
+
+1.  **Clone the repository:**
+    ```bash
+    git clone <your-repository-url>
+    cd shadow-chat
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    # or
+    yarn install
+    # or
+    pnpm install
+    # or
+    bun install
+    ```
+
+3.  **Set up environment variables:**
+    Create a `.env.local` file in the root of the project and add your Groq API key:
+    ```env
+    GROQ_API_KEY=your_groq_api_key_here
+    ```
+    *Note: `.env.local` is included in `.gitignore` by default.*
+
+### Running the Development Server
+
+Run the development server using Turbopack (recommended):
 
 ```bash
 npm run dev
@@ -13,24 +71,3 @@ pnpm dev
 # or
 bun dev
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
